@@ -1,23 +1,30 @@
 // @flow
-// @tscheck
 
-import { Store } from '../src';
+import Head from 'next/head'
 
-const store = new Store(0);
+import { CounterDemo, MultiCounterDemo } from '../src/story';
 
-const CounterA = {
-  state: () => (s: number) => 0,
-  string: (s: string) => (s: number) => 0,
-  inc: (n: number) => s => s + n,
-  set: (n: number) => (s: number) => n,
-}
-
-const Counter = store.algonawt(({ base }, counter, publish) => <span>
-  Counting {counter} <button onClick={() => publish(CounterA.inc(base))}>inc {base}</button>
-</span>);
-
-export default () => (
-  <div>
-    <Counter base={3} />
+export default () => <div>
+  <Head>
+    <title>Cinammon Redux</title>
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    {/*<!-- Google Fonts -->*/}
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"/>
+    {/*<!-- CSS Reset -->*/}
+    <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"/>
+    {/*<!-- Milligram CSS minified -->*/}
+    <link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"/>
+  </Head>
+  <br/>
+  <div className="container">
+    <article>
+      <h3>Counter</h3>
+      <CounterDemo />
+    </article>
+    <hr/>
+    <article>
+      <h3>Multi Counter</h3>
+      <MultiCounterDemo />
+    </article>
   </div>
-)
+</div>
