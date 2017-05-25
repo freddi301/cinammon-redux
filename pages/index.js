@@ -2,7 +2,7 @@
 
 import Head from 'next/head'
 
-import { CounterDemo, MultiCounterDemo } from '../src/story';
+import { CounterDemo, MultiCounterDemo, MultiCounterDemo2 } from '../src/story';
 
 export default () => <div>
   <Head>
@@ -25,6 +25,11 @@ export default () => <div>
     <article>
       <h3>Multi Counter</h3>
       <MultiCounterDemo />
+    </article>
+    <hr/>
+    <article>
+      <h3>Multi Counter Refactored</h3>
+      <MultiCounterDemo2 />
     </article>
   </div>
 </div>
