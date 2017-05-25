@@ -1,4 +1,4 @@
-[cinammon-redux.now.sh](https://cinammon-redux-jacjkmufuz.now.sh)
+[cinammon-redux.now.sh](https://cinammon-redux.now.sh)
 
 # Cinammon Redux
 
