@@ -53,13 +53,13 @@ import React from 'react';
 
 export type Connected<Props, State> = Class<React.Component<void, Props, { state: State }>>
 
-export function connect<State, Action: { +type: string, +payload?: mixed }, Props>(
+export function connect<State, Action: { +type: string, +payload?: mixed }, Props, Component: (props: Props, state: State, publish: Publish<Action>) => React.Element<*>>(
   store: Store<State, Action>,
-  component: (props: Props, state: State, publish: Publish<Action>) => React.Element<any>
+  component: Component
 ): Connected<Props, State> {
   return class extends React.Component<void, Props, { state: State }> {
     store: Store<State, Action> = store;
-    component: (props: Props, state: State, publish: Publish<Action>) => React.Element<any> = component;
+    component: Component = component;
     state = { state: store.state };
     render() { return this.component(this.props, this.state.state, this.store.publish); }
     listen: Listener<State> = state => this.setState({ state });
@@ -123,16 +123,22 @@ export const MultiCounterDemo = () => <div>
 
 // Lets refactor repeatedReducer to something reusable
 
+// define every action on its own
+
 type InstanceReducerActionReduce<State, Action> = { type: 'InstanceAction.reduceInstance', payload: { ref: string, action: Action } };
 type InstanceReducerActionCreate<State, Action> = { type: 'InstanceAction.createInstance', payload: { ref: string, state: State } };
 
-type InstanceReducerAction<State, Action> = InstanceReducerActionCreate<State, Action> | InstanceReducerActionReduce<State, Action>;
+// define State and Action type for the new reducer
 
+type InstanceReducerAction<State, Action> = InstanceReducerActionCreate<State, Action> | InstanceReducerActionReduce<State, Action>;
 type InstanceReducerState<State> = {[key: string]: State};
+
+// here a class is used only to group things together
 
 export class InstanceReducer<State, Action: { +type: string, +payload?: mixed }> {
   delegate: Reducer<State, Action>;
   constructor(reducer: Reducer<State, Action>) { this.delegate = reducer; }
+  // top-down approach first write the effective reducer, a trivial dispatcher with a switch
   reducer = (instances: InstanceReducerState<State>, action: InstanceReducerAction<State, Action>) => {
     switch (action.type) {
       case 'InstanceAction.createInstance': return this.createInstance(instances, action.payload.ref, action.payload.state);
@@ -140,11 +146,17 @@ export class InstanceReducer<State, Action: { +type: string, +payload?: mixed }>
       default: throw new Error(`action not supported`);
     }
   }
-  reduce(ref: string, action: Action): InstanceReducerActionReduce<State, Action> { return { type: 'InstanceAction.reduceInstance', payload: { ref, action } }; }
+  // then a trivial schema: basic action creator, action handler
+  reduce(ref: string, action: Action) { return { type: 'InstanceAction.reduceInstance', payload: { ref, action } }; }
   reduceInstance(instances: InstanceReducerState<State>, ref: string, action: Action) { return ({ ...instances, [ref]: this.delegate(instances[ref], action)}); }
-  create(ref: string, state: State): InstanceReducerActionCreate<State, Action> { return { type: 'InstanceAction.createInstance', payload: { ref, state } }; }
+  create(ref: string, state: State) { return { type: 'InstanceAction.createInstance', payload: { ref, state } }; }
   createInstance(instances: InstanceReducerState<State>, ref: string, state: State) { return ({ ...instances, [ref]: state }); }
 }
+
+// If you are asking yourself why so many type annotations, and why some parts uses a larger code form (like switch)
+// is's because parametric typing in flow is not as flexible, and this amount of annotations is the necessary evil
+// to achieve 100% flow coverage and correctness
+// maybe someone more clever than me will find some way to reduce the boilerplate
 
 const instancedCounter: InstanceReducer<CounterState, CounterAction> = new InstanceReducer(Counter.reducer);
 
@@ -161,4 +173,8 @@ const MultiCounterComponent2 = connect(multiCounterDemoStore2, CounterInstanceCo
 export const MultiCounterDemo2 = () => <div>
   <MultiCounterComponent2 instance="left" View={CounterViewComponent}/>
   <MultiCounterComponent2 instance="right" View={CounterViewComponent}/>
+  <MultiCounterComponent2 instance="left" View={CounterViewComponent}/>
 </div>;
+
+
+// TODO: nesting reducers, exampple { domain: InstancedReducers, view: Windows } 
